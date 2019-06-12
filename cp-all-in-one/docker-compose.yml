@@ -1,6 +1,6 @@
 version: '2'
 services:
-  zookeeper-1:
+  zookeeper1:
     image: confluentinc/cp-zookeeper:latest
     environment:
       hostname: zookeeper1
@@ -8,9 +8,9 @@ services:
       ZOOKEEPER_SERVER_ID: 1
       ZOOKEEPER_CLIENT_PORT: 22181
       ZOOKEEPER_TICK_TIME: 2000
-      ZOOKEEPER_SERVERS: zookeeper1:22888:22888;zookeeper2:32888:32888;
+      ZOOKEEPER_SERVERS: zookeeper1:22888:23888;zookeeper2:32888:33888;
 
-  zookeeper-2:
+  zookeeper2:
     image: confluentinc/cp-zookeeper:latest
     environment:
       hostname: zookeeper2
@@ -18,10 +18,10 @@ services:
       ZOOKEEPER_SERVER_ID: 2
       ZOOKEEPER_CLIENT_PORT: 32181
       ZOOKEEPER_TICK_TIME: 2000
-      ZOOKEEPER_SERVERS: zookeeper1:22888:22888;zookeeper2:32888:32888;
+      ZOOKEEPER_SERVERS: zookeeper1:22888:23888;zookeeper2:32888:33888;
 
 
-  broker-1-zk1:
+  broker1:
     image: confluentinc/cp-enterprise-kafka:5.2.1
     hostname: broker1
     container_name: broker1
@@ -29,23 +29,14 @@ services:
       - zookeeper1
       - zookeeper2
     ports:
-      - "29092:29092"
-      - "9092:9092"
+      - "19092:19092"
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper1:22888','zookeeper2:32888'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker1:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker1:29092
-      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper1:22888,zookeeper2:32888
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
-      CONFLUENT_METRICS_ENABLE: 'true'
-      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper1:22181,zookeeper2:32181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker1:19092
 
-    broker-2-zk1:
+  broker2:
     image: confluentinc/cp-enterprise-kafka:5.2.1
     hostname: broker2
     container_name: broker2
@@ -53,23 +44,14 @@ services:
       - zookeeper1
       - zookeeper2
     ports:
-      - "29092:29090"
-      - "9092:9090"
+      - "29092:29092"
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper1:22888','zookeeper2:32888'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker2,PLAINTEXT_HOST://localhost:9090
-      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker2:29090
-      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper1:22888,zookeeper2:32888
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
-      CONFLUENT_METRICS_ENABLE: 'true'
-      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
-
-  broker-3-zk2:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper1:22181,zookeeper2:32181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker2:29092
+  
+  broker3:
     image: confluentinc/cp-enterprise-kafka:5.2.1
     hostname: broker3
     container_name: broker3
@@ -77,21 +59,12 @@ services:
       - zookeeper1
       - zookeeper2
     ports:
-      - "29092:29088"
-      - "9092:9088"
+      - "39092:39092"
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper1:22888','zookeeper2:32888'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker3:29088,PLAINTEXT_HOST://localhost:9088
-      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker3:29088
-      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper1:22888,zookeeper2:32888
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
-      CONFLUENT_METRICS_ENABLE: 'true'
-      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper1:22181,zookeeper2:32181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker3:39092
 
   schema-registry:
     image: confluentinc/cp-schema-registry:5.2.1
@@ -107,7 +80,9 @@ services:
       - "8081:8081"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper1:22888','zookeeper2:32888'
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'broker1:19092,broker2:29092,broker3:39092'
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker1::19092,PLAINTEXT://broker2:29092,PLAINTEXT://broker3:39092'
+
   connect:
     image: confluentinc/kafka-connect-datagen:latest
     build:
@@ -125,7 +100,7 @@ services:
     ports:
       - "8083:8083"
     environment:
-      CONNECT_BOOTSTRAP_SERVERS: 'broker1:29092','broker2:29090','broker3:29088'
+      CONNECT_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker1::19092,PLAINTEXT://broker2:29092,PLAINTEXT://broker3:39092'
       CONNECT_REST_ADVERTISED_HOST_NAME: connect
       CONNECT_REST_PORT: 8083
       CONNECT_GROUP_ID: compose-connect-group
@@ -141,7 +116,7 @@ services:
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      CONNECT_ZOOKEEPER_CONNECT: zookeeper1:22181,zookeeper2:32181
       # Assumes image is based on confluentinc/kafka-connect-datagen:latest which is pulling 5.1.1 Connect image
       CLASSPATH: /usr/share/java/monitoring-interceptors/monitoring-interceptors-5.2.1.jar
       CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
@@ -166,8 +141,8 @@ services:
     ports:
       - "9021:9021"
     environment:
-      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker1:29092','broker2:29090','broker3:29088'
-      CONTROL_CENTER_ZOOKEEPER_CONNECT: 'zookeeper1:22888','zookeeper2:32888'
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker1::19092,PLAINTEXT://broker2:29092,PLAINTEXT://broker3:39092'
+      CONTROL_CENTER_ZOOKEEPER_CONNECT: zookeeper1:22181,zookeeper2:32181
       CONTROL_CENTER_CONNECT_CLUSTER: 'connect:8083'
       CONTROL_CENTER_KSQL_URL: "http://ksql-server:8088"
       CONTROL_CENTER_KSQL_ADVERTISED_URL: "http://localhost:8088"
@@ -191,7 +166,7 @@ services:
     environment:
       KSQL_CONFIG_DIR: "/etc/ksql"
       KSQL_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/ksql/log4j-rolling.properties"
-      KSQL_BOOTSTRAP_SERVERS: 'broker1:29092','broker2:29090','broker3:29088'
+      KSQL_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker1::19092,PLAINTEXT://broker2:29092,PLAINTEXT://broker3:39092'
       KSQL_HOST_NAME: ksql-server
       KSQL_APPLICATION_ID: "cp-all-in-one"
       KSQL_LISTENERS: "http://0.0.0.0:8088"
@@ -225,9 +200,9 @@ services:
       - schema-registry
       - connect
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                       cub kafka-ready -b broker1:29092 1 40 && \
-                       cub kafka-ready -b broker2:29090 1 40 && \
-                       cub kafka-ready -b broker3:29088 1 40 && \
+                       cub kafka-ready -b broker1:19092 1 40 && \
+                       cub kafka-ready -b broker2:29092 1 40 && \
+                       cub kafka-ready -b broker3:39092 1 40 && \
                        echo Waiting for Confluent Schema Registry to be ready... && \
                        cub sr-ready schema-registry 8081 40 && \
                        echo Waiting a few seconds for topic creation to finish... && \
@@ -236,7 +211,7 @@ services:
     environment:
       KSQL_CONFIG_DIR: "/etc/ksql"
       KSQL_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/ksql/log4j-rolling.properties"
-      STREAMS_BOOTSTRAP_SERVERS: 'broker1:29092','broker2:29090','broker3:29088'
+      STREAMS_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker1::19092,PLAINTEXT://broker2:29092,PLAINTEXT://broker3:39092'
       STREAMS_SCHEMA_REGISTRY_HOST: schema-registry
       STREAMS_SCHEMA_REGISTRY_PORT: 8081
 
@@ -245,7 +220,7 @@ services:
     image: confluentinc/cp-kafka-rest:5.2.1
     depends_on:
       - zookeeper1
-      - zookeeper2 
+      - zookeeper2
       - broker1
       - broker2
       - broker3
@@ -256,8 +231,7 @@ services:
     container_name: rest-proxy
     environment:
       KAFKA_REST_HOST_NAME: rest-proxy
-      KAFKA_REST_BOOTSTRAP_SERVERS: 'broker1:29092','broker2:29090','broker3:29088'
+      KAFKA_REST_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker1::19092,PLAINTEXT://broker2:29092,PLAINTEXT://broker3:39092'
       KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
       KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
 
-      
